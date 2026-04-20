@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EQ Basketball S4 Standings</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=Outfit:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:#fdf5eb;color:#1b2a4a;font-family:'DM Sans',sans-serif}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+input:focus{outline:2px solid #d94f1a;outline-offset:-1px}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#f0e4d4;border-radius:3px}::-webkit-scrollbar-thumb{background:#c8d1e0;border-radius:3px}
+.header{background:#1b2a4a;padding:12px 16px;border-bottom:3px solid #d94f1a}
+.header-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.header-sub{font-size:10px;font-weight:700;letter-spacing:2.5px;color:#f0a37a;text-transform:uppercase}
+.header h1{font-family:'Outfit',sans-serif;font-size:26px;font-weight:900;color:#fff;line-height:1}
+.header h1 span{color:#f0a37a;font-size:18px}
+.prog-bar{width:120px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:#d94f1a;border-radius:2px;transition:width .4s}
+.main{max-width:1200px;margin:0 auto;padding:12px 10px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.left{flex:1 1 640px;min-width:0}.right{flex:0 0 260px;min-width:240px}
+.card{background:#fff;border:2px solid #1b2a4a;border-radius:10px;overflow:hidden;margin-bottom:12px}
+.card-head{background:#1b2a4a;padding:8px 12px;display:flex;align-items:center;gap:8px}
+.card-head h2{font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:#fff}
+table{width:100%;border-collapse:collapse;font-size:15px}
+thead tr{background:#f0e4d4;border-bottom:2px solid #c8d1e0}
+th{padding:6px 6px;font-weight:800;color:#1b2a4a;font-size:12px;letter-spacing:.5px}
+th.la{text-align:left;padding-left:8px}
+td{padding:6px 6px;text-align:center}
+td.tc{text-align:left;padding-left:8px;font-weight:800;font-size:16px;white-space:nowrap}
+td.rc{font-family:'DM Mono',monospace;font-weight:800;font-size:17px}
+td.m{font-family:'DM Mono',monospace}
+td.nc{text-align:left;padding-left:8px;font-size:12px;color:#8896a8;font-style:italic;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+tr.po{background:rgba(217,79,26,.07)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#d94f1a;margin-right:6px;vertical-align:middle}
+.legend{padding:5px 12px;border-top:1px solid #f0e4d4;font-size:11px;color:#8896a8}
+.dbs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.db{padding:5px 12px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;border:2px solid #c8d1e0;background:#fff;color:#1b2a4a}
+.db.act{border-color:#d94f1a;background:rgba(217,79,26,.1);color:#d94f1a}
+.db.dn{background:#f0e4d4;color:#2a7d4f}
+.eh{background:#1b2a4a;padding:7px 12px;display:flex;justify-content:space-between;align-items:center}
+.gr{padding:4px 0;border-bottom:1px solid #f0e4d4}.gr:last-child{border-bottom:none}
+.gl{font-size:11px;color:#8896a8;font-weight:700;letter-spacing:.5px;margin-bottom:1px}
+.sl{display:flex;align-items:center;gap:5px;padding:3px 0}
+.tn{font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:#1b2a4a;min-width:34px}
+.tn.r{text-align:right}.tn.w{font-weight:800}.tn.l{font-weight:500;color:#8896a8}
+.si{width:46px;text-align:center;padding:4px 2px;border-radius:5px;border:2px solid #c8d1e0;background:#fdf5eb;color:#1b2a4a;font-family:'DM Mono',monospace;font-size:16px;font-weight:700}
+.sb{font-family:'DM Mono',monospace;font-size:18px;font-weight:800;color:#1b2a4a;min-width:60px;text-align:center;background:#f0e4d4;border-radius:5px;padding:2px 6px}
+.sv{padding:3px 10px;border-radius:5px;border:none;background:#d94f1a;color:#fff;cursor:pointer;font-size:14px;font-weight:700}
+.sv:disabled{opacity:.5;cursor:not-allowed}
+.eb{margin-left:2px;background:none;border:none;cursor:pointer;color:#8896a8;font-size:14px}
+.rb{font-size:12px;font-weight:700;color:#c0392b;background:none;border:2px solid rgba(192,57,43,.3);border-radius:6px;padding:6px 16px;cursor:pointer}
+.rc2{background:#fdf5eb;border:2px solid #c8d1e0;border-radius:8px;padding:6px 8px;margin-bottom:6px}
+.rh{display:flex;justify-content:space-between;margin-bottom:4px}
+.rd{font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:#1b2a4a}
+.rdt{font-size:12px;color:#8896a8;font-weight:600}
+.rg{display:flex;align-items:center;padding:2px 0}.rg+.rg{border-top:1px solid #c8d1e0}
+.rt{font-family:'DM Mono',monospace;font-size:14px;flex:1}
+.rt.ww{font-weight:800;color:#1b2a4a}.rt.ll{font-weight:500;color:#8896a8}
+.rt.rr{text-align:right;padding-right:4px}.rt.lll{padding-left:4px}
+.rs{font-family:'DM Mono',monospace;font-size:15px;font-weight:800;color:#1b2a4a;background:#f0e4d4;border-radius:4px;padding:0 6px;min-width:46px;text-align:center}
+.gn{color:#2a7d4f}.rd2{color:#c0392b}.mu{color:#8896a8}.gd{color:#d4a017}.sv2{color:#7f8c8d}
+.sticky{position:sticky;top:8px}
+.em{text-align:center;padding:16px 4px;color:#8896a8;font-size:13px;font-style:italic}
+.loading{text-align:center;padding:20px;color:#8896a8;font-size:14px}
+.status{position:fixed;bottom:12px;right:12px;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:700;z-index:99;transition:opacity .3s;opacity:0;pointer-events:none}
+.status.show{opacity:1}
+.status.ok{background:#2a7d4f;color:#fff}
+.status.err{background:#c0392b;color:#fff}
+.status.load{background:#1b2a4a;color:#f0a37a}
+</style>
+</head>
+<body>
+<div id="status" class="status"></div>
+<div id="app"><div class="loading">Loading data from Google Sheets...</div></div>
+
+<script>
+// =============================================
+// CHANGE THIS to your deployed Apps Script URL
+// =============================================
+const API_URL = "https://script.google.com/macros/s/AKfycbx6VXXRDBfisDnEUovOl7h6moB8EDKNKFCLx3C80T7iquRZ6qILsED8_Mh_jYa9wsGT/exec";
+
+const TEAMS=["A","B","C","D","E","F","G","H"];
+const TN={A:"FV",B:"B1",C:"MP",D:"KB1",E:"B2",F:"KBS",G:"BS",H:"DA"};
+const SCHED=[
+  {day:1,date:"Apr 18",games:[["H","A"],["B","G"],["C","F"],["D","E"]]},
+  {day:2,date:"Apr 25",games:[["E","F"],["H","D"],["G","C"]]},
+  {day:3,date:"May 9",games:[["F","G"],["E","A"],["B","C"]]},
+  {day:4,date:"May 16",games:[["H","G"],["E","C"],["D","B"]]},
+  {day:5,date:"May 23",games:[["A","B"],["D","G"],["H","F"]]},
+  {day:6,date:"May 30",games:[["B","E"],["C","A"],["F","D"]]},
+  {day:7,date:"Jun 6",games:[["H","C"],["A","F"],["G","E"]]},
+  {day:8,date:"Jun 13",games:[["C","D"],["H","B"],["G","A"]]},
+  {day:9,date:"Jun 20",games:[["A","D"],["F","B"],["H","E"]]}
+];
+const N=t=>TN[t];
+
+let results={};
+let activeDay=1;
+let saving=false;
+
+function makeEmpty(){
+  const r={};
+  SCHED.forEach(d=>d.games.forEach(([a,b],i)=>{r[d.day+"-"+i]={home:a,away:b,hs:"",as:"",final:false};}));
+  return r;
+}
+
+function showStatus(msg,type,duration){
+  const el=document.getElementById("status");
+  el.textContent=msg;el.className="status show "+type;
+  if(duration)setTimeout(()=>{el.className="status";},duration);
+}
+
+// ===== GOOGLE SHEETS API =====
+async function loadFromSheet(){
+  if(API_URL==="YOUR_GOOGLE_APPS_SCRIPT_URL_HERE"){
+    results=makeEmpty();
+    render();
+    return;
+  }
+  try{
+    showStatus("Loading...","load");
+    const res=await fetch(API_URL);
+    const data=await res.json();
+    results=makeEmpty();
+    // Merge sheet data into results
+    for(const key in data){
+      if(results[key]){
+        results[key].hs=data[key].hs||"";
+        results[key].as=data[key].as||"";
+        results[key].final=data[key].final||false;
+      }
+    }
+    showStatus("Loaded ✓","ok",1500);
+  }catch(e){
+    console.error(e);
+    results=makeEmpty();
+    showStatus("Offline mode — couldn't reach sheet","err",3000);
+  }
+  render();
+}
+
+async function saveToSheet(gameKey,g){
+  if(API_URL==="YOUR_GOOGLE_APPS_SCRIPT_URL_HERE")return;
+  try{
+    showStatus("Saving...","load");
+    await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"save",gameKey:gameKey,home:g.home,away:g.away,homeScore:+g.hs,awayScore:+g.as}),headers:{"Content-Type":"text/plain"}});
+    showStatus("Saved ✓","ok",1500);
+  }catch(e){showStatus("Save failed","err",2000);}
+}
+
+async function clearOnSheet(gameKey){
+  if(API_URL==="YOUR_GOOGLE_APPS_SCRIPT_URL_HERE")return;
+  try{
+    await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"clear",gameKey:gameKey}),headers:{"Content-Type":"text/plain"}});
+  }catch(e){}
+}
+
+async function resetOnSheet(){
+  if(API_URL==="YOUR_GOOGLE_APPS_SCRIPT_URL_HERE")return;
+  try{
+    showStatus("Resetting...","load");
+    await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"reset"}),headers:{"Content-Type":"text/plain"}});
+    showStatus("Reset ✓","ok",1500);
+  }catch(e){showStatus("Reset failed","err",2000);}
+}
+
+async function initSheet(){
+  if(API_URL==="YOUR_GOOGLE_APPS_SCRIPT_URL_HERE")return;
+  const games=[];
+  SCHED.forEach(d=>d.games.forEach(([a,b],i)=>{games.push({key:d.day+"-"+i,home:a,away:b});}));
+  try{
+    await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"init",games:games}),headers:{"Content-Type":"text/plain"}});
+  }catch(e){}
+}
+
+// ===== TIEBREAKER LOGIC =====
+function compute(){
+  const st={};
+  TEAMS.forEach(t=>{st[t]={team:t,w:0,l:0,pf:0,pa:0,diff:0,gp:0,res:{}};});
+  Object.values(results).forEach(g=>{
+    if(!g.final)return;const hs=+g.hs,as=+g.as;if(isNaN(hs)||isNaN(as))return;
+    st[g.home].pf+=hs;st[g.home].pa+=as;st[g.home].gp++;
+    st[g.away].pf+=as;st[g.away].pa+=hs;st[g.away].gp++;
+    st[g.home].diff=st[g.home].pf-st[g.home].pa;st[g.away].diff=st[g.away].pf-st[g.away].pa;
+    if(hs>as){st[g.home].w++;st[g.away].l++;st[g.home].res[g.away]="W";st[g.away].res[g.home]="L";}
+    else{st[g.away].w++;st[g.home].l++;st[g.away].res[g.home]="W";st[g.home].res[g.away]="L";}
+  });
+  return rank(Object.values(st));
+}
+function rank(teams){teams.sort((a,b)=>b.w-a.w);const r=[];let i=0;while(i<teams.length){let j=i;while(j<teams.length&&teams[j].w===teams[i].w)j++;const g=teams.slice(i,j);if(g.length===1)r.push({...g[0],rank:r.length+1,note:""});else r.push(...tie(g,r.length+1));i=j;}return r;}
+function tie(g,s){return g.length===2?t2(g,s):g.length===3?t3(g,s):tN(g,s);}
+function t2([a,b],s){if(a.res[b.team]==="W")return[{...a,rank:s,note:"H2H win vs "+N(b.team)},{...b,rank:s+1,note:"H2H loss vs "+N(a.team)}];if(b.res[a.team]==="W")return[{...b,rank:s,note:"H2H win vs "+N(a.team)},{...a,rank:s+1,note:"H2H loss vs "+N(b.team)}];if(a.diff!==b.diff){const d=[a,b].sort((x,y)=>y.diff-x.diff);return d.map((t,i)=>({...t,rank:s+i,note:"+/- "+(t.diff>0?"+":"")+t.diff}));}if(a.pf!==b.pf){const d=[a,b].sort((x,y)=>y.pf-x.pf);return d.map((t,i)=>({...t,rank:s+i,note:"PF: "+t.pf}));}return[a,b].map(t=>({...t,rank:s,note:"Tied (coin toss)"}));}
+function t3(group,s){const h={};group.forEach(t=>{h[t.team]={w:0,l:0};});let ap=true;for(let i=0;i<group.length;i++)for(let j=i+1;j<group.length;j++){const a=group[i],b=group[j];if(a.res[b.team]==="W"){h[a.team].w++;h[b.team].l++;}else if(a.res[b.team]==="L"){h[b.team].w++;h[a.team].l++;}else ap=false;}if(ap){const d=[...group].sort((a,b)=>h[b.team].w-h[a.team].w);if(h[d[0].team].w>h[d[1].team].w)return[{...d[0],rank:s,note:"H2H "+h[d[0].team].w+"-"+h[d[0].team].l+" (3-way)"},...t2([d[1],d[2]],s+1)];if(h[d[2].team].w<h[d[1].team].w)return[...t2([d[0],d[1]],s),{...d[2],rank:s+2,note:"H2H "+h[d[2].team].w+"-"+h[d[2].team].l+" (3-way)"}];}return fb(group,s,"3-way tie");}
+function tN(group,s){const h={};group.forEach(t=>{h[t.team]={w:0,l:0};});for(let i=0;i<group.length;i++)for(let j=i+1;j<group.length;j++){const a=group[i],b=group[j];if(a.res[b.team]==="W"){h[a.team].w++;h[b.team].l++;}else if(a.res[b.team]==="L"){h[b.team].w++;h[a.team].l++;}}const d=[...group].sort((a,b)=>h[b.team].w-h[a.team].w||h[a.team].l-h[b.team].l);if(h[d[0].team].w>h[d[1].team].w)return[{...d[0],rank:s,note:"H2H best ("+group.length+"-way)"},...tie(d.slice(1),s+1)];return fb(group,s,group.length+"-way tie");}
+function fb(group,s,label){const d=[...group].sort((a,b)=>b.diff!==a.diff?b.diff-a.diff:b.pf-a.pf);return d.map((t,i)=>{let n=label;if(t.diff!==(d[i>0?i-1:1]||{}).diff)n+=", +/- "+(t.diff>0?"+":"")+t.diff;else if(t.pf!==(d[i>0?i-1:1]||{}).pf)n+=", PF "+t.pf;else n+=" (lots)";return{...t,rank:s+i,note:n};});}
+
+// ===== RENDER =====
+function render(){
+  const standings=compute();
+  const total=Object.values(results).filter(g=>g.final).length;
+  const day=SCHED.find(d=>d.day===activeDay);
+  const playing=new Set();
+  if(day)day.games.forEach(([a,b])=>{playing.add(a);playing.add(b);});
+  const rest=day?TEAMS.filter(t=>!playing.has(t)):[];
+
+  let sHTML=standings.map((t,i)=>{
+    const po=t.rank<=2&&t.gp>0,rc=t.rank===1?"gd":t.rank===2?"sv2":"mu",wc=t.w>0?"gn":"mu",lc=t.l>0?"rd2":"mu",dc=t.diff>0?"gn":t.diff<0?"rd2":"mu";
+    return`<tr class="${po?"po":""}"><td class="rc ${rc}">${t.gp>0?t.rank:"—"}</td><td class="tc">${po?'<span class="dot"></span>':""}${N(t.team)}</td><td class="m" style="font-weight:800;font-size:16px"><span class="${wc}">${t.w}</span></td><td class="m" style="font-weight:800;font-size:16px"><span class="${lc}">${t.l}</span></td><td class="m" style="font-size:15px">${t.pf}</td><td class="m" style="font-size:15px">${t.pa}</td><td class="m ${dc}" style="font-weight:700;font-size:15px">${t.diff>0?"+":""}${t.diff}</td><td class="nc">${t.note}</td></tr>`;
+  }).join("");
+
+  let dbHTML=SCHED.map(d=>{
+    const dn=d.games.every((_,i)=>results[d.day+"-"+i]?.final),act=activeDay===d.day;
+    return`<button class="db${act?" act":""}${dn?" dn":""}" onclick="setDay(${d.day})">D${d.day}${dn?" ✓":""}</button>`;
+  }).join("");
+
+  let eHTML="";
+  if(day){
+    let gHTML=day.games.map(([a,b],gi)=>{
+      const k=day.day+"-"+gi,g=results[k];
+      let inner;
+      if(g.final){
+        const hs=+g.hs,as=+g.as,hw=hs>as;
+        inner=`<div class="sl"><span class="tn r ${hw?"w":"l"}">${N(a)}</span><span class="sb">${g.hs} – ${g.as}</span><span class="tn ${!hw?"w":"l"}">${N(b)}</span><button class="eb" onclick="clrGame('${k}')">✎</button></div>`;
+      }else{
+        inner=`<div class="sl"><span class="tn r">${N(a)}</span><input type="number" min="0" class="si" id="h-${k}" value="${g.hs}" placeholder="–" oninput="setS('${k}','h',this.value)"><span class="mu" style="font-size:14px;font-weight:700">–</span><input type="number" min="0" class="si" id="a-${k}" value="${g.as}" placeholder="–" oninput="setS('${k}','a',this.value)"><span class="tn">${N(b)}</span><button class="sv" onclick="svGame('${k}')">✓</button></div>`;
+      }
+      return`<div class="gr"><div class="gl">GAME ${gi+1}</div>${inner}</div>`;
+    }).join("");
+    eHTML=`<div class="card"><div class="eh"><div style="display:flex;align-items:center;gap:8px"><span style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:#fff">Day ${day.day}</span><span style="font-size:13px;color:#f0a37a;font-weight:600">${day.date}</span></div>${rest.length?`<span style="font-size:12px;color:#f0a37a;font-weight:600">Rest: ${rest.map(N).join(", ")}</span>`:""}</div><div style="padding:4px 12px 8px">${gHTML}</div></div>`;
+  }
+
+  let rHTML=SCHED.map(d=>{
+    const games=d.games.map(([a,b],i)=>({home:a,away:b,...results[d.day+"-"+i]}));
+    if(!games.some(g=>g.final))return"";
+    let rows=games.map((g,i)=>{
+      if(!g.final)return`<div style="padding:2px 0;font-size:13px;color:#8896a8;font-style:italic">${N(g.home)} vs ${N(g.away)} — pending</div>`;
+      const hs=+g.hs,as=+g.as,hw=hs>as;
+      return`<div class="rg"><span class="rt rr ${hw?"ww":"ll"}">${N(g.home)}</span><span class="rs">${g.hs}–${g.as}</span><span class="rt lll ${!hw?"ww":"ll"}">${N(g.away)}</span></div>`;
+    }).join("");
+    return`<div class="rc2"><div class="rh"><span class="rd">Day ${d.day}</span><span class="rdt">${d.date}</span></div>${rows}</div>`;
+  }).join("");
+  if(!rHTML.trim())rHTML=`<div class="em">No results yet</div>`;
+
+  const apiSet=API_URL!=="YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
+  const connBadge=apiSet?`<span style="font-size:10px;color:#2a7d4f;font-weight:700">● Connected</span>`:`<span style="font-size:10px;color:#d94f1a;font-weight:700">● Offline (no API URL set)</span>`;
+
+  document.getElementById("app").innerHTML=`
+  <div class="header"><div class="header-inner">
+    <div><div class="header-sub">Fairview Stake EQ</div><h1>Basketball League <span>S4</span></h1></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      ${connBadge}
+      <span style="font-size:13px;color:#f0a37a;font-weight:700">${total}/28</span>
+      <div class="prog-bar"><div class="prog-fill" style="width:${(total/28)*100}%"></div></div>
+    </div>
+  </div></div>
+  <div class="main">
+    <div class="left">
+      <div class="card"><div class="card-head"><span style="font-size:16px">🏀</span><h2>Standings</h2></div>
+        <div style="overflow-x:auto"><table><thead><tr>
+          <th style="text-align:center">#</th><th class="la">TEAM</th><th>W</th><th>L</th><th style="font-size:11px">Points For</th><th style="font-size:11px">Points Against</th><th>+/-</th><th class="la">TIEBREAKER</th>
+        </tr></thead><tbody>${sHTML}</tbody></table></div>
+        ${total>0?'<div class="legend"><span class="dot"></span> Finals (Top 2)</div>':""}
+      </div>
+      <h2 style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;margin-bottom:8px">Enter Scores</h2>
+      <div class="dbs">${dbHTML}</div>
+      ${eHTML}
+      <div style="text-align:center;padding:8px 0 20px"><button class="rb" onclick="resetAll()">Reset All</button></div>
+    </div>
+    <div class="right"><div class="sticky">
+      <div class="card"><div class="card-head"><span style="font-size:14px">📋</span><h2 style="font-size:15px">Results</h2></div>
+        <div style="padding:8px;max-height:calc(100vh - 100px);overflow-y:auto">${rHTML}</div>
+      </div>
+    </div></div>
+  </div>`;
+}
+
+function setDay(d){activeDay=activeDay===d?null:d;render();}
+function setS(k,side,val){if(side==="h")results[k].hs=val;else results[k].as=val;}
+async function svGame(k){
+  const g=results[k];const h=+g.hs,a=+g.as;
+  if(isNaN(h)||isNaN(a)||h<0||a<0||h===a)return;
+  g.final=true;render();
+  await saveToSheet(k,g);
+}
+async function clrGame(k){
+  results[k].hs="";results[k].as="";results[k].final=false;render();
+  await clearOnSheet(k);
+}
+async function resetAll(){
+  if(!confirm("Reset all results?"))return;
+  results=makeEmpty();render();
+  await resetOnSheet();
+}
+
+// ===== INIT =====
+loadFromSheet().then(()=>initSheet());
+</script>
+</body>
+</html>
