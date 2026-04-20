@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EQ Basketball S4 Standings</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏀</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=Outfit:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -69,16 +70,18 @@ tr.po{background:rgba(217,79,26,.07)}
 .status.ok{background:#2a7d4f;color:#fff}
 .status.err{background:#c0392b;color:#fff}
 .status.load{background:#1b2a4a;color:#f0a37a}
+.ver{position:fixed;bottom:8px;right:12px;font-size:10px;color:#c8d1e0;font-weight:600;font-family:'DM Mono',monospace;pointer-events:none;z-index:50}
 </style>
 </head>
 <body>
 <div id="status" class="status"></div>
+<div class="ver">v1.0.2</div>
 <div id="app"><div class="loading">Loading data from Google Sheets...</div></div>
 <script>
 // =============================================
 // CHANGE THIS to your deployed Apps Script URL
 // =============================================
-const API_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
+const API_URL = "https://script.google.com/macros/s/AKfycbxROkelFvv6pYQ23KtjYP3kdRio98bRYDuWg-cTVS_PpQ-AKnluKQ-JYkoIM4xDStGy/exec";
 
 const TEAMS=["A","B","C","D","E","F","G","H"];
 const TN={A:"FV",B:"B1",C:"MP",D:"KB1",E:"B2",F:"KBS",G:"BS",H:"DA"};
@@ -94,19 +97,14 @@ const SCHED=[
   {day:9,date:"Jun 20",games:[["A","D"],["F","B"],["H","E"]]}
 ];
 const N=t=>TN[t];
-
-// Game keys use "D" prefix to prevent Google Sheets from interpreting them as dates
-// e.g., "D1G0", "D1G1", "D1G2", "D1G3", "D2G0", etc.
-function gk(day, gi) { return "D"+day+"G"+gi; }
+function gk(day,gi){return"D"+day+"G"+gi;}
 
 let results={};
 let activeDay=1;
 
 function makeEmpty(){
   const r={};
-  SCHED.forEach(d=>d.games.forEach(([a,b],i)=>{
-    r[gk(d.day,i)]={home:a,away:b,hs:"",as:"",final:false};
-  }));
+  SCHED.forEach(d=>d.games.forEach(([a,b],i)=>{r[gk(d.day,i)]={home:a,away:b,hs:"",as:"",final:false};}));
   return r;
 }
 
@@ -116,36 +114,21 @@ function showStatus(msg,type,dur){
   if(dur)setTimeout(()=>{el.className="status";},dur);
 }
 
-// ===== GOOGLE SHEETS API =====
 async function loadFromSheet(){
   if(API_URL==="YOUR_GOOGLE_APPS_SCRIPT_URL_HERE"){results=makeEmpty();render();return;}
   try{
     showStatus("Loading...","load");
-    const res=await fetch(API_URL);
-    const data=await res.json();
+    const res=await fetch(API_URL);const data=await res.json();
     results=makeEmpty();
-    for(const key in data){
-      if(results[key]){
-        results[key].hs=data[key].hs||"";
-        results[key].as=data[key].as||"";
-        results[key].final=data[key].final||false;
-      }
-    }
+    for(const key in data){if(results[key]){results[key].hs=data[key].hs||"";results[key].as=data[key].as||"";results[key].final=data[key].final||false;}}
     showStatus("Loaded ✓","ok",1500);
-  }catch(e){
-    console.error(e);results=makeEmpty();
-    showStatus("Offline mode","err",3000);
-  }
+  }catch(e){console.error(e);results=makeEmpty();showStatus("Offline mode","err",3000);}
   render();
 }
 
 async function saveToSheet(gameKey,g){
-  if(API_URL==="https://script.google.com/macros/s/AKfycbxROkelFvv6pYQ23KtjYP3kdRio98bRYDuWg-cTVS_PpQ-AKnluKQ-JYkoIM4xDStGy/exec")return;
-  try{
-    showStatus("Saving...","load");
-    await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"save",gameKey:gameKey,home:g.home,away:g.away,homeScore:+g.hs,awayScore:+g.as}),headers:{"Content-Type":"text/plain"}});
-    showStatus("Saved ✓","ok",1500);
-  }catch(e){showStatus("Save failed","err",2000);}
+  if(API_URL==="YOUR_GOOGLE_APPS_SCRIPT_URL_HERE")return;
+  try{showStatus("Saving...","load");await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"save",gameKey:gameKey,home:g.home,away:g.away,homeScore:+g.hs,awayScore:+g.as}),headers:{"Content-Type":"text/plain"}});showStatus("Saved ✓","ok",1500);}catch(e){showStatus("Save failed","err",2000);}
 }
 
 async function clearOnSheet(gameKey){
@@ -155,37 +138,24 @@ async function clearOnSheet(gameKey){
 
 async function resetOnSheet(){
   if(API_URL==="YOUR_GOOGLE_APPS_SCRIPT_URL_HERE")return;
-  try{
-    showStatus("Resetting...","load");
-    await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"reset"}),headers:{"Content-Type":"text/plain"}});
-    showStatus("Reset ✓","ok",1500);
-  }catch(e){showStatus("Reset failed","err",2000);}
+  try{showStatus("Resetting...","load");await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"reset"}),headers:{"Content-Type":"text/plain"}});showStatus("Reset ✓","ok",1500);}catch(e){showStatus("Reset failed","err",2000);}
 }
 
 async function initSheet(){
   if(API_URL==="YOUR_GOOGLE_APPS_SCRIPT_URL_HERE")return;
-  const games=[];
-  SCHED.forEach(d=>d.games.forEach(([a,b],i)=>{
-    games.push({key:gk(d.day,i),home:a,away:b});
-  }));
-  try{
-    await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"init",games:games}),headers:{"Content-Type":"text/plain"}});
-  }catch(e){}
+  const games=[];SCHED.forEach(d=>d.games.forEach(([a,b],i)=>{games.push({key:gk(d.day,i),home:a,away:b});}));
+  try{await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"init",games:games}),headers:{"Content-Type":"text/plain"}});}catch(e){}
 }
 
-// ===== TIEBREAKER LOGIC =====
 function compute(){
-  const st={};
-  TEAMS.forEach(t=>{st[t]={team:t,w:0,l:0,pf:0,pa:0,diff:0,gp:0,res:{}};});
+  const st={};TEAMS.forEach(t=>{st[t]={team:t,w:0,l:0,pf:0,pa:0,diff:0,gp:0,res:{}};});
   Object.values(results).forEach(g=>{
     if(!g.final)return;const hs=+g.hs,as=+g.as;if(isNaN(hs)||isNaN(as))return;
-    st[g.home].pf+=hs;st[g.home].pa+=as;st[g.home].gp++;
-    st[g.away].pf+=as;st[g.away].pa+=hs;st[g.away].gp++;
+    st[g.home].pf+=hs;st[g.home].pa+=as;st[g.home].gp++;st[g.away].pf+=as;st[g.away].pa+=hs;st[g.away].gp++;
     st[g.home].diff=st[g.home].pf-st[g.home].pa;st[g.away].diff=st[g.away].pf-st[g.away].pa;
     if(hs>as){st[g.home].w++;st[g.away].l++;st[g.home].res[g.away]="W";st[g.away].res[g.home]="L";}
     else{st[g.away].w++;st[g.home].l++;st[g.away].res[g.home]="W";st[g.home].res[g.away]="L";}
-  });
-  return rank(Object.values(st));
+  });return rank(Object.values(st));
 }
 function rank(teams){teams.sort((a,b)=>b.w-a.w);const r=[];let i=0;while(i<teams.length){let j=i;while(j<teams.length&&teams[j].w===teams[i].w)j++;const g=teams.slice(i,j);if(g.length===1)r.push({...g[0],rank:r.length+1,note:""});else r.push(...tie(g,r.length+1));i=j;}return r;}
 function tie(g,s){return g.length===2?t2(g,s):g.length===3?t3(g,s):tN(g,s);}
@@ -194,7 +164,6 @@ function t3(group,s){const h={};group.forEach(t=>{h[t.team]={w:0,l:0};});let ap=
 function tN(group,s){const h={};group.forEach(t=>{h[t.team]={w:0,l:0};});for(let i=0;i<group.length;i++)for(let j=i+1;j<group.length;j++){const a=group[i],b=group[j];if(a.res[b.team]==="W"){h[a.team].w++;h[b.team].l++;}else if(a.res[b.team]==="L"){h[b.team].w++;h[a.team].l++;}}const d=[...group].sort((a,b)=>h[b.team].w-h[a.team].w||h[a.team].l-h[b.team].l);if(h[d[0].team].w>h[d[1].team].w)return[{...d[0],rank:s,note:"H2H best ("+group.length+"-way)"},...tie(d.slice(1),s+1)];return fb(group,s,group.length+"-way tie");}
 function fb(group,s,label){const d=[...group].sort((a,b)=>b.diff!==a.diff?b.diff-a.diff:b.pf-a.pf);return d.map((t,i)=>{let n=label;if(t.diff!==(d[i>0?i-1:1]||{}).diff)n+=", +/- "+(t.diff>0?"+":"")+t.diff;else if(t.pf!==(d[i>0?i-1:1]||{}).pf)n+=", PF "+t.pf;else n+=" (lots)";return{...t,rank:s+i,note:n};});}
 
-// ===== RENDER =====
 function render(){
   const standings=compute();
   const total=Object.values(results).filter(g=>g.final).length;
@@ -216,10 +185,8 @@ function render(){
   let eHTML="";
   if(day){
     let gHTML=day.games.map(([a,b],gi)=>{
-      const k=gk(day.day,gi),g=results[k];
-      let inner;
-      if(g.final){
-        const hs=+g.hs,as=+g.as,hw=hs>as;
+      const k=gk(day.day,gi),g=results[k];let inner;
+      if(g.final){const hs=+g.hs,as=+g.as,hw=hs>as;
         inner='<div class="sl"><span class="tn r '+(hw?"w":"l")+'">'+N(a)+'</span><span class="sb">'+g.hs+' – '+g.as+'</span><span class="tn '+(!hw?"w":"l")+'">'+N(b)+'</span><button class="eb" onclick="clrGame(\''+k+'\')">✎</button></div>';
       }else{
         inner='<div class="sl"><span class="tn r">'+N(a)+'</span><input type="number" min="0" class="si" id="h-'+k+'" value="'+g.hs+'" placeholder="–" oninput="setS(\''+k+'\',\'h\',this.value)"><span class="mu" style="font-size:14px;font-weight:700">–</span><input type="number" min="0" class="si" id="a-'+k+'" value="'+g.as+'" placeholder="–" oninput="setS(\''+k+'\',\'a\',this.value)"><span class="tn">'+N(b)+'</span><button class="sv" onclick="svGame(\''+k+'\')">✓</button></div>';
@@ -275,24 +242,11 @@ function render(){
 
 function setDay(d){activeDay=activeDay===d?null:d;render();}
 function setS(k,side,val){if(side==="h")results[k].hs=val;else results[k].as=val;}
-async function svGame(k){
-  const g=results[k];const h=+g.hs,a=+g.as;
-  if(isNaN(h)||isNaN(a)||h<0||a<0||h===a)return;
-  g.final=true;render();
-  await saveToSheet(k,g);
-}
-async function clrGame(k){
-  results[k].hs="";results[k].as="";results[k].final=false;render();
-  await clearOnSheet(k);
-}
-async function resetAll(){
-  if(!confirm("Reset all results?"))return;
-  results=makeEmpty();render();
-  await resetOnSheet();
-}
+async function svGame(k){const g=results[k];const h=+g.hs,a=+g.as;if(isNaN(h)||isNaN(a)||h<0||a<0||h===a)return;g.final=true;render();await saveToSheet(k,g);}
+async function clrGame(k){results[k].hs="";results[k].as="";results[k].final=false;render();await clearOnSheet(k);}
+async function resetAll(){if(!confirm("Reset all results?"))return;results=makeEmpty();render();await resetOnSheet();}
 
 loadFromSheet().then(()=>initSheet());
 </script>
 </body>
 </html>
-
