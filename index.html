@@ -49,7 +49,6 @@ tr.po{background:rgba(217,79,26,.07)}
 .si{width:46px;text-align:center;padding:4px 2px;border-radius:5px;border:2px solid #c8d1e0;background:#fdf5eb;color:#1b2a4a;font-family:'DM Mono',monospace;font-size:16px;font-weight:700}
 .sb{font-family:'DM Mono',monospace;font-size:18px;font-weight:800;color:#1b2a4a;min-width:60px;text-align:center;background:#f0e4d4;border-radius:5px;padding:2px 6px}
 .sv{padding:3px 10px;border-radius:5px;border:none;background:#d94f1a;color:#fff;cursor:pointer;font-size:14px;font-weight:700}
-.sv:disabled{opacity:.5;cursor:not-allowed}
 .eb{margin-left:2px;background:none;border:none;cursor:pointer;color:#8896a8;font-size:14px}
 .rb{font-size:12px;font-weight:700;color:#c0392b;background:none;border:2px solid rgba(192,57,43,.3);border-radius:6px;padding:6px 16px;cursor:pointer}
 .rc2{background:#fdf5eb;border:2px solid #c8d1e0;border-radius:8px;padding:6px 8px;margin-bottom:6px}
@@ -64,7 +63,7 @@ tr.po{background:rgba(217,79,26,.07)}
 .gn{color:#2a7d4f}.rd2{color:#c0392b}.mu{color:#8896a8}.gd{color:#d4a017}.sv2{color:#7f8c8d}
 .sticky{position:sticky;top:8px}
 .em{text-align:center;padding:16px 4px;color:#8896a8;font-size:13px;font-style:italic}
-.loading{text-align:center;padding:20px;color:#8896a8;font-size:14px}
+.loading{text-align:center;padding:40px;color:#8896a8;font-size:14px}
 .status{position:fixed;bottom:12px;right:12px;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:700;z-index:99;transition:opacity .3s;opacity:0;pointer-events:none}
 .status.show{opacity:1}
 .status.ok{background:#2a7d4f;color:#fff}
@@ -75,12 +74,11 @@ tr.po{background:rgba(217,79,26,.07)}
 <body>
 <div id="status" class="status"></div>
 <div id="app"><div class="loading">Loading data from Google Sheets...</div></div>
-
 <script>
 // =============================================
 // CHANGE THIS to your deployed Apps Script URL
 // =============================================
-const API_URL = "https://script.google.com/macros/s/AKfycbx6VXXRDBfisDnEUovOl7h6moB8EDKNKFCLx3C80T7iquRZ6qILsED8_Mh_jYa9wsGT/exec";
+const API_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
 
 const TEAMS=["A","B","C","D","E","F","G","H"];
 const TN={A:"FV",B:"B1",C:"MP",D:"KB1",E:"B2",F:"KBS",G:"BS",H:"DA"};
@@ -97,35 +95,35 @@ const SCHED=[
 ];
 const N=t=>TN[t];
 
+// Game keys use "D" prefix to prevent Google Sheets from interpreting them as dates
+// e.g., "D1G0", "D1G1", "D1G2", "D1G3", "D2G0", etc.
+function gk(day, gi) { return "D"+day+"G"+gi; }
+
 let results={};
 let activeDay=1;
-let saving=false;
 
 function makeEmpty(){
   const r={};
-  SCHED.forEach(d=>d.games.forEach(([a,b],i)=>{r[d.day+"-"+i]={home:a,away:b,hs:"",as:"",final:false};}));
+  SCHED.forEach(d=>d.games.forEach(([a,b],i)=>{
+    r[gk(d.day,i)]={home:a,away:b,hs:"",as:"",final:false};
+  }));
   return r;
 }
 
-function showStatus(msg,type,duration){
+function showStatus(msg,type,dur){
   const el=document.getElementById("status");
   el.textContent=msg;el.className="status show "+type;
-  if(duration)setTimeout(()=>{el.className="status";},duration);
+  if(dur)setTimeout(()=>{el.className="status";},dur);
 }
 
 // ===== GOOGLE SHEETS API =====
 async function loadFromSheet(){
-  if(API_URL==="YOUR_GOOGLE_APPS_SCRIPT_URL_HERE"){
-    results=makeEmpty();
-    render();
-    return;
-  }
+  if(API_URL==="YOUR_GOOGLE_APPS_SCRIPT_URL_HERE"){results=makeEmpty();render();return;}
   try{
     showStatus("Loading...","load");
     const res=await fetch(API_URL);
     const data=await res.json();
     results=makeEmpty();
-    // Merge sheet data into results
     for(const key in data){
       if(results[key]){
         results[key].hs=data[key].hs||"";
@@ -135,15 +133,14 @@ async function loadFromSheet(){
     }
     showStatus("Loaded ✓","ok",1500);
   }catch(e){
-    console.error(e);
-    results=makeEmpty();
-    showStatus("Offline mode — couldn't reach sheet","err",3000);
+    console.error(e);results=makeEmpty();
+    showStatus("Offline mode","err",3000);
   }
   render();
 }
 
 async function saveToSheet(gameKey,g){
-  if(API_URL==="YOUR_GOOGLE_APPS_SCRIPT_URL_HERE")return;
+  if(API_URL==="https://script.google.com/macros/s/AKfycbxROkelFvv6pYQ23KtjYP3kdRio98bRYDuWg-cTVS_PpQ-AKnluKQ-JYkoIM4xDStGy/exec")return;
   try{
     showStatus("Saving...","load");
     await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"save",gameKey:gameKey,home:g.home,away:g.away,homeScore:+g.hs,awayScore:+g.as}),headers:{"Content-Type":"text/plain"}});
@@ -153,9 +150,7 @@ async function saveToSheet(gameKey,g){
 
 async function clearOnSheet(gameKey){
   if(API_URL==="YOUR_GOOGLE_APPS_SCRIPT_URL_HERE")return;
-  try{
-    await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"clear",gameKey:gameKey}),headers:{"Content-Type":"text/plain"}});
-  }catch(e){}
+  try{await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"clear",gameKey:gameKey}),headers:{"Content-Type":"text/plain"}});}catch(e){}
 }
 
 async function resetOnSheet(){
@@ -170,7 +165,9 @@ async function resetOnSheet(){
 async function initSheet(){
   if(API_URL==="YOUR_GOOGLE_APPS_SCRIPT_URL_HERE")return;
   const games=[];
-  SCHED.forEach(d=>d.games.forEach(([a,b],i)=>{games.push({key:d.day+"-"+i,home:a,away:b});}));
+  SCHED.forEach(d=>d.games.forEach(([a,b],i)=>{
+    games.push({key:gk(d.day,i),home:a,away:b});
+  }));
   try{
     await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"init",games:games}),headers:{"Content-Type":"text/plain"}});
   }catch(e){}
@@ -208,73 +205,72 @@ function render(){
 
   let sHTML=standings.map((t,i)=>{
     const po=t.rank<=2&&t.gp>0,rc=t.rank===1?"gd":t.rank===2?"sv2":"mu",wc=t.w>0?"gn":"mu",lc=t.l>0?"rd2":"mu",dc=t.diff>0?"gn":t.diff<0?"rd2":"mu";
-    return`<tr class="${po?"po":""}"><td class="rc ${rc}">${t.gp>0?t.rank:"—"}</td><td class="tc">${po?'<span class="dot"></span>':""}${N(t.team)}</td><td class="m" style="font-weight:800;font-size:16px"><span class="${wc}">${t.w}</span></td><td class="m" style="font-weight:800;font-size:16px"><span class="${lc}">${t.l}</span></td><td class="m" style="font-size:15px">${t.pf}</td><td class="m" style="font-size:15px">${t.pa}</td><td class="m ${dc}" style="font-weight:700;font-size:15px">${t.diff>0?"+":""}${t.diff}</td><td class="nc">${t.note}</td></tr>`;
+    return'<tr class="'+(po?"po":"")+'"><td class="rc '+rc+'">'+(t.gp>0?t.rank:"—")+'</td><td class="tc">'+(po?'<span class="dot"></span>':"")+N(t.team)+'</td><td class="m" style="font-weight:800;font-size:16px"><span class="'+wc+'">'+t.w+'</span></td><td class="m" style="font-weight:800;font-size:16px"><span class="'+lc+'">'+t.l+'</span></td><td class="m" style="font-size:15px">'+t.pf+'</td><td class="m" style="font-size:15px">'+t.pa+'</td><td class="m '+dc+'" style="font-weight:700;font-size:15px">'+(t.diff>0?"+":"")+t.diff+'</td><td class="nc">'+t.note+'</td></tr>';
   }).join("");
 
   let dbHTML=SCHED.map(d=>{
-    const dn=d.games.every((_,i)=>results[d.day+"-"+i]?.final),act=activeDay===d.day;
-    return`<button class="db${act?" act":""}${dn?" dn":""}" onclick="setDay(${d.day})">D${d.day}${dn?" ✓":""}</button>`;
+    const dn=d.games.every((_,i)=>results[gk(d.day,i)]?.final),act=activeDay===d.day;
+    return'<button class="db'+(act?" act":"")+(dn?" dn":"")+'" onclick="setDay('+d.day+')">D'+d.day+(dn?" ✓":"")+'</button>';
   }).join("");
 
   let eHTML="";
   if(day){
     let gHTML=day.games.map(([a,b],gi)=>{
-      const k=day.day+"-"+gi,g=results[k];
+      const k=gk(day.day,gi),g=results[k];
       let inner;
       if(g.final){
         const hs=+g.hs,as=+g.as,hw=hs>as;
-        inner=`<div class="sl"><span class="tn r ${hw?"w":"l"}">${N(a)}</span><span class="sb">${g.hs} – ${g.as}</span><span class="tn ${!hw?"w":"l"}">${N(b)}</span><button class="eb" onclick="clrGame('${k}')">✎</button></div>`;
+        inner='<div class="sl"><span class="tn r '+(hw?"w":"l")+'">'+N(a)+'</span><span class="sb">'+g.hs+' – '+g.as+'</span><span class="tn '+(!hw?"w":"l")+'">'+N(b)+'</span><button class="eb" onclick="clrGame(\''+k+'\')">✎</button></div>';
       }else{
-        inner=`<div class="sl"><span class="tn r">${N(a)}</span><input type="number" min="0" class="si" id="h-${k}" value="${g.hs}" placeholder="–" oninput="setS('${k}','h',this.value)"><span class="mu" style="font-size:14px;font-weight:700">–</span><input type="number" min="0" class="si" id="a-${k}" value="${g.as}" placeholder="–" oninput="setS('${k}','a',this.value)"><span class="tn">${N(b)}</span><button class="sv" onclick="svGame('${k}')">✓</button></div>`;
+        inner='<div class="sl"><span class="tn r">'+N(a)+'</span><input type="number" min="0" class="si" id="h-'+k+'" value="'+g.hs+'" placeholder="–" oninput="setS(\''+k+'\',\'h\',this.value)"><span class="mu" style="font-size:14px;font-weight:700">–</span><input type="number" min="0" class="si" id="a-'+k+'" value="'+g.as+'" placeholder="–" oninput="setS(\''+k+'\',\'a\',this.value)"><span class="tn">'+N(b)+'</span><button class="sv" onclick="svGame(\''+k+'\')">✓</button></div>';
       }
-      return`<div class="gr"><div class="gl">GAME ${gi+1}</div>${inner}</div>`;
+      return'<div class="gr"><div class="gl">GAME '+(gi+1)+'</div>'+inner+'</div>';
     }).join("");
-    eHTML=`<div class="card"><div class="eh"><div style="display:flex;align-items:center;gap:8px"><span style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:#fff">Day ${day.day}</span><span style="font-size:13px;color:#f0a37a;font-weight:600">${day.date}</span></div>${rest.length?`<span style="font-size:12px;color:#f0a37a;font-weight:600">Rest: ${rest.map(N).join(", ")}</span>`:""}</div><div style="padding:4px 12px 8px">${gHTML}</div></div>`;
+    eHTML='<div class="card"><div class="eh"><div style="display:flex;align-items:center;gap:8px"><span style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;color:#fff">Day '+day.day+'</span><span style="font-size:13px;color:#f0a37a;font-weight:600">'+day.date+'</span></div>'+(rest.length?'<span style="font-size:12px;color:#f0a37a;font-weight:600">Rest: '+rest.map(N).join(", ")+'</span>':'')+'</div><div style="padding:4px 12px 8px">'+gHTML+'</div></div>';
   }
 
   let rHTML=SCHED.map(d=>{
-    const games=d.games.map(([a,b],i)=>({home:a,away:b,...results[d.day+"-"+i]}));
+    const games=d.games.map(([a,b],i)=>({home:a,away:b,...results[gk(d.day,i)]}));
     if(!games.some(g=>g.final))return"";
     let rows=games.map((g,i)=>{
-      if(!g.final)return`<div style="padding:2px 0;font-size:13px;color:#8896a8;font-style:italic">${N(g.home)} vs ${N(g.away)} — pending</div>`;
+      if(!g.final)return'<div style="padding:2px 0;font-size:13px;color:#8896a8;font-style:italic">'+N(g.home)+' vs '+N(g.away)+' — pending</div>';
       const hs=+g.hs,as=+g.as,hw=hs>as;
-      return`<div class="rg"><span class="rt rr ${hw?"ww":"ll"}">${N(g.home)}</span><span class="rs">${g.hs}–${g.as}</span><span class="rt lll ${!hw?"ww":"ll"}">${N(g.away)}</span></div>`;
+      return'<div class="rg"><span class="rt rr '+(hw?"ww":"ll")+'">'+N(g.home)+'</span><span class="rs">'+g.hs+'–'+g.as+'</span><span class="rt lll '+(!hw?"ww":"ll")+'">'+N(g.away)+'</span></div>';
     }).join("");
-    return`<div class="rc2"><div class="rh"><span class="rd">Day ${d.day}</span><span class="rdt">${d.date}</span></div>${rows}</div>`;
+    return'<div class="rc2"><div class="rh"><span class="rd">Day '+d.day+'</span><span class="rdt">'+d.date+'</span></div>'+rows+'</div>';
   }).join("");
-  if(!rHTML.trim())rHTML=`<div class="em">No results yet</div>`;
+  if(!rHTML.trim())rHTML='<div class="em">No results yet</div>';
 
   const apiSet=API_URL!=="YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
-  const connBadge=apiSet?`<span style="font-size:10px;color:#2a7d4f;font-weight:700">● Connected</span>`:`<span style="font-size:10px;color:#d94f1a;font-weight:700">● Offline (no API URL set)</span>`;
+  const conn=apiSet?'<span style="font-size:10px;color:#2a7d4f;font-weight:700">● Connected</span>':'<span style="font-size:10px;color:#d94f1a;font-weight:700">● Offline</span>';
 
-  document.getElementById("app").innerHTML=`
-  <div class="header"><div class="header-inner">
-    <div><div class="header-sub">Fairview Stake EQ</div><h1>Basketball League <span>S4</span></h1></div>
-    <div style="display:flex;align-items:center;gap:10px">
-      ${connBadge}
-      <span style="font-size:13px;color:#f0a37a;font-weight:700">${total}/28</span>
-      <div class="prog-bar"><div class="prog-fill" style="width:${(total/28)*100}%"></div></div>
-    </div>
-  </div></div>
-  <div class="main">
-    <div class="left">
-      <div class="card"><div class="card-head"><span style="font-size:16px">🏀</span><h2>Standings</h2></div>
-        <div style="overflow-x:auto"><table><thead><tr>
-          <th style="text-align:center">#</th><th class="la">TEAM</th><th>W</th><th>L</th><th style="font-size:11px">Points For</th><th style="font-size:11px">Points Against</th><th>+/-</th><th class="la">TIEBREAKER</th>
-        </tr></thead><tbody>${sHTML}</tbody></table></div>
-        ${total>0?'<div class="legend"><span class="dot"></span> Finals (Top 2)</div>':""}
-      </div>
-      <h2 style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;margin-bottom:8px">Enter Scores</h2>
-      <div class="dbs">${dbHTML}</div>
-      ${eHTML}
-      <div style="text-align:center;padding:8px 0 20px"><button class="rb" onclick="resetAll()">Reset All</button></div>
-    </div>
-    <div class="right"><div class="sticky">
-      <div class="card"><div class="card-head"><span style="font-size:14px">📋</span><h2 style="font-size:15px">Results</h2></div>
-        <div style="padding:8px;max-height:calc(100vh - 100px);overflow-y:auto">${rHTML}</div>
-      </div>
-    </div></div>
-  </div>`;
+  document.getElementById("app").innerHTML=
+  '<div class="header"><div class="header-inner">'+
+    '<div><div class="header-sub">Fairview Stake EQ</div><h1>Basketball League <span>S4</span></h1></div>'+
+    '<div style="display:flex;align-items:center;gap:10px">'+conn+
+      '<span style="font-size:13px;color:#f0a37a;font-weight:700">'+total+'/28</span>'+
+      '<div class="prog-bar"><div class="prog-fill" style="width:'+(total/28*100)+'%"></div></div>'+
+    '</div>'+
+  '</div></div>'+
+  '<div class="main">'+
+    '<div class="left">'+
+      '<div class="card"><div class="card-head"><span style="font-size:16px">🏀</span><h2>Standings</h2></div>'+
+        '<div style="overflow-x:auto"><table><thead><tr>'+
+          '<th style="text-align:center">#</th><th class="la">TEAM</th><th>W</th><th>L</th><th style="font-size:11px">Points For</th><th style="font-size:11px">Points Against</th><th>+/-</th><th class="la">TIEBREAKER</th>'+
+        '</tr></thead><tbody>'+sHTML+'</tbody></table></div>'+
+        (total>0?'<div class="legend"><span class="dot"></span> Finals (Top 2)</div>':'')+
+      '</div>'+
+      '<h2 style="font-family:Outfit,sans-serif;font-size:16px;font-weight:800;margin-bottom:8px">Enter Scores</h2>'+
+      '<div class="dbs">'+dbHTML+'</div>'+
+      eHTML+
+      '<div style="text-align:center;padding:8px 0 20px"><button class="rb" onclick="resetAll()">Reset All</button></div>'+
+    '</div>'+
+    '<div class="right"><div class="sticky">'+
+      '<div class="card"><div class="card-head"><span style="font-size:14px">📋</span><h2 style="font-size:15px">Results</h2></div>'+
+        '<div style="padding:8px;max-height:calc(100vh - 100px);overflow-y:auto">'+rHTML+'</div>'+
+      '</div>'+
+    '</div></div>'+
+  '</div>';
 }
 
 function setDay(d){activeDay=activeDay===d?null:d;render();}
@@ -295,8 +291,8 @@ async function resetAll(){
   await resetOnSheet();
 }
 
-// ===== INIT =====
 loadFromSheet().then(()=>initSheet());
 </script>
 </body>
 </html>
+
